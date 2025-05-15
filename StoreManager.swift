@@ -19,7 +19,7 @@ class StoreManager: NSObject, ObservableObject, SKProductsRequestDelegate, SKPay
         "com.zthreesolutions.tolerancetracker.room05"
     ]
     private var completion: ((Bool, String?) -> Void)?
-
+    
     override init() {
         super.init()
         SKPaymentQueue.default().add(self)
@@ -44,7 +44,7 @@ class StoreManager: NSObject, ObservableObject, SKProductsRequestDelegate, SKPay
         let productID = "com.tolerancetracker.plan\(roomCount)room" + (roomCount > 1 ? "s" : "")
         return products.first { $0.productIdentifier == productID }
     }
-
+    
     func requestProducts() {
         print("Requesting products: \(productIdentifiers)")
         isLoading = true
@@ -54,12 +54,12 @@ class StoreManager: NSObject, ObservableObject, SKProductsRequestDelegate, SKPay
         request.delegate = self
         request.start()
     }
-
+    
     func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
         DispatchQueue.main.async {
             self.products = response.products.sorted {
                 self.getRoomLimitForProduct($0.productIdentifier) <
-                self.getRoomLimitForProduct($1.productIdentifier)
+                    self.getRoomLimitForProduct($1.productIdentifier)
             }
             self.isLoading = false
             print("Received products: \(self.products.map { $0.productIdentifier })")
@@ -68,7 +68,7 @@ class StoreManager: NSObject, ObservableObject, SKProductsRequestDelegate, SKPay
             }
         }
     }
-
+    
     func buyProduct(_ product: SKProduct, completion: @escaping (Bool, String?) -> Void = { _, _ in }) {
         print("Initiating purchase for product: \(product.productIdentifier)")
         self.completion = completion
@@ -78,7 +78,7 @@ class StoreManager: NSObject, ObservableObject, SKProductsRequestDelegate, SKPay
         let payment = SKPayment(product: product)
         SKPaymentQueue.default().add(payment)
     }
-
+    
     func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         for transaction in transactions {
             switch transaction.transactionState {
@@ -109,100 +109,82 @@ class StoreManager: NSObject, ObservableObject, SKProductsRequestDelegate, SKPay
         // Real restore flow
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
-
+    
     func manageSubscriptions() {
         print("Opening subscription management")
         if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
             UIApplication.shared.open(url)
         }
     }
-
+    
     private func validateReceipt(completion: @escaping (Bool, String?) -> Void) {
-      //  #if DEBUG
-        // In debug/testing mode, simulate successful validation
-        print("DEBUG MODE: Simulating successful receipt validation")
-        
-        // Get the product ID of the most recent transaction
-        if let productID = SKPaymentQueue.default().transactions.last?.payment.productIdentifier {
-            let roomLimit = getRoomLimitForProduct(productID)
-            
-            // Update Firebase directly to ensure changes propagate
-            if let userId = Auth.auth().currentUser?.uid {
-                let database = Database.database().reference()
-                database.child("users").observeSingleEvent(of: .value) { snapshot in
-                    if snapshot.exists() {
-                        // Search for the user with this authId
-                        if let users = snapshot.value as? [String: [String: Any]] {
-                            for (userUUID, userData) in users {
-                                if let authId = userData["authId"] as? String, authId == userId {
-                                    // Found the user, update subscription info
-                                    database.child("users").child(userUUID).updateChildValues([
-                                        "subscriptionPlan": productID,
-                                        "roomLimit": roomLimit
-                                    ]) { error, _ in
-                                        if let error = error {
-                                            print("Error updating user subscription: \(error)")
-                                        } else {
-                                            print("Successfully updated user subscription to \(productID) with limit \(roomLimit)")
-                                            
-                                            // Post notification for subscribers
-                                            DispatchQueue.main.async {
-                                                NotificationCenter.default.post(
-                                                    name: Notification.Name("SubscriptionUpdated"),
-                                                    object: nil,
-                                                    userInfo: ["plan": productID, "limit": roomLimit]
-                                                )
-                                            }
-                                        }
-                                    }
-                                    break
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Also update current store manager state
-            DispatchQueue.main.async {
-                self.currentSubscriptionPlan = SubscriptionPlan(productID: productID)
-                UserDefaults.standard.set(productID, forKey: "currentSubscriptionPlan")
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            completion(true, nil)
-        }
-     //   #else
-        // Real validation logic for production
         guard let receiptURL = Bundle.main.appStoreReceiptURL,
               let receiptData = try? Data(contentsOf: receiptURL) else {
             print("No receipt found")
             completion(false, "No receipt found")
             return
         }
+
         let receiptString = receiptData.base64EncodedString()
         print("Validating receipt with Firebase Functions")
         let functions = Functions.functions()
+        
         functions.httpsCallable("validateReceiptTiered").call(["receipt": receiptString]) { result, error in
             if let error = error {
                 print("Receipt validation failed: \(error.localizedDescription)")
                 completion(false, error.localizedDescription)
-            } else if let data = result?.data as? [String: Any],
-                      let success = data["success"] as? Bool,
-                      let planID = data["planID"] as? String,
-                      let roomLimit = data["roomLimit"] as? Int {
-                print("Receipt validation success: \(success), Plan: \(planID), Limit: \(roomLimit)")
-                DispatchQueue.main.async {
-                    self.currentSubscriptionPlan = SubscriptionPlan(productID: planID)
-                }
-                completion(success, nil)
-            } else {
+                return
+            }
+
+            guard let data = result?.data as? [String: Any],
+                  let success = data["success"] as? Bool,
+                  let planID = data["planID"] as? String,
+                  let roomLimit = data["roomLimit"] as? Int else {
                 print("Invalid response from server during receipt validation")
                 completion(false, "Invalid response from server")
+                return
+            }
+
+            print("Receipt validation success: \(success), Plan: \(planID), Limit: \(roomLimit)")
+            
+            // Update local state
+            DispatchQueue.main.async {
+                self.currentSubscriptionPlan = SubscriptionPlan(productID: planID)
+                UserDefaults.standard.set(planID, forKey: "currentSubscriptionPlan")
+                
+                // Update Firebase Realtime Database
+                if let userId = Auth.auth().currentUser?.uid {
+                    let database = Database.database().reference()
+                    database.child("users").queryOrdered(byChild: "authId").queryEqual(toValue: userId).observeSingleEvent(of: .value) { snapshot in
+                        if snapshot.exists(), let userData = snapshot.value as? [String: [String: Any]], let userKey = userData.keys.first {
+                            database.child("users").child(userKey).updateChildValues([
+                                "subscriptionPlan": planID,
+                                "roomLimit": roomLimit
+                            ]) { error, _ in
+                                if let error = error {
+                                    print("Error updating user subscription: \(error)")
+                                    completion(false, error.localizedDescription)
+                                } else {
+                                    print("Successfully updated user subscription to \(planID) with limit \(roomLimit)")
+                                    NotificationCenter.default.post(
+                                        name: Notification.Name("SubscriptionUpdated"),
+                                        object: nil,
+                                        userInfo: ["plan": planID, "limit": roomLimit]
+                                    )
+                                    completion(success, nil)
+                                }
+                            }
+                        } else {
+                            print("User not found in database")
+                            completion(false, "User not found in database")
+                        }
+                    }
+                } else {
+                    print("No authenticated user")
+                    completion(false, "No authenticated user")
+                }
             }
         }
-      //  #endif
     }
 }
 
