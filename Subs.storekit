@@ -1,0 +1,183 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "AB942764",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "DAFF94F2",
+      "localizations" : [
+
+      ],
+      "name" : "Room Plans",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "366DE751",
+          "introductoryOffer" : {
+            "internalID" : "1CF936C3",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Access to manage one treatment room",
+              "displayName" : "1 Room Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.tolerancetracker.plan1room",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plan 1 Room",
+          "subscriptionGroupID" : "DAFF94F2",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.98",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "25095ACE",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Access to manage two treatment rooms",
+              "displayName" : "2 Room Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.tolerancetracker.plan2rooms",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plan 2 Rooms",
+          "subscriptionGroupID" : "DAFF94F2",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.97",
+          "familyShareable" : false,
+          "groupNumber" : 3,
+          "internalID" : "25095ACF",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Access to manage three treatment rooms",
+              "displayName" : "3 Room Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.tolerancetracker.plan3rooms",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plan 3 Rooms",
+          "subscriptionGroupID" : "DAFF94F2",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.96",
+          "familyShareable" : false,
+          "groupNumber" : 4,
+          "internalID" : "25095AD0",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Access to manage four treatment rooms",
+              "displayName" : "4 Room Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.tolerancetracker.plan4rooms",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plan 4 Rooms",
+          "subscriptionGroupID" : "DAFF94F2",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "49.95",
+          "familyShareable" : false,
+          "groupNumber" : 5,
+          "internalID" : "25095AD1",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Access to manage five treatment rooms",
+              "displayName" : "5 Room Plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.tolerancetracker.plan5rooms",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Plan 5 Rooms",
+          "subscriptionGroupID" : "DAFF94F2",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
