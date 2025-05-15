@@ -600,6 +600,33 @@ class AppData: ObservableObject {
         }
     }
     
+    func setupTimerObservation() {
+        if let roomId = currentRoomId {
+            let dbRef = Database.database().reference()
+            dbRef.child("rooms").child(roomId).child("treatmentTimer").observe(.value) { snapshot in
+                if let timerDict = snapshot.value as? [String: Any],
+                   let timerObj = TreatmentTimer.fromDictionary(timerDict),
+                   timerObj.isActive && timerObj.endTime > Date() {
+                    
+                    DispatchQueue.main.async {
+                        // Only update if timer is newer or we don't have one
+                        if self.treatmentTimer == nil ||
+                           self.treatmentTimer!.endTime < timerObj.endTime {
+                            self.treatmentTimer = timerObj
+                            self.treatmentTimerId = timerObj.id
+                            
+                            // Notify the UI
+                            NotificationCenter.default.post(
+                                name: Notification.Name("ActiveTimerFound"),
+                                object: timerObj
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func switchToRoom(roomId: String) {
         // Clear badge when switching rooms
         DispatchQueue.main.async {
